@@ -7,88 +7,91 @@
 
 import lrapi.lr;
 
-
-
-import java.util.*;
-
-import org.apache.avro.AvroRuntimeException;
 import org.apache.avro.Schema;
-import org.apache.avro.file.DataFileReader;
-import org.apache.avro.file.DataFileWriter;
-import org.apache.avro.generic.*;
-import org.apache.avro.io.DatumReader;
-import org.apache.avro.io.DatumWriter;
-
-
-
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import java.util.Properties;
+
 
 public class Actions
 {
 
-Schema.Parser parser = new Schema.Parser();
-//        Schema schema = parser.parse("{\n" +
-//                "     \"type\": \"record\",\n" +
-//                "     \"namespace\": \"com.example\",\n" +
-//                "     \"name\": \"Customer\",\n" +
-//                "     \"fields\": [\n" +
-//                "       { \"name\": \"first_name\", \"type\": \"string\", \"doc\": \"First Name of Customer\" },\n" +
-//                "       { \"name\": \"last_name\", \"type\": \"string\", \"doc\": \"Last Name of Customer\" },\n" +
-//                "       { \"name\": \"age\", \"type\": \"int\", \"doc\": \"Age at the time of registration\" },\n" +
-//                "       { \"name\": \"height\", \"type\": \"float\", \"doc\": \"Height at the time of registration in cm\" },\n" +
-//                "       { \"name\": \"weight\", \"type\": \"float\", \"doc\": \"Weight at the time of registration in kg\" },\n" +
-//                "       { \"name\": \"automated_email\", \"type\": \"boolean\", \"default\": true, \"doc\": \"Field indicating if the user is enrolled in marketing emails\" }\n" +
-//                "     ]\n" +
-//                "}");
-                
-         
-         Schema schema = parser.parse("{\n" +
-                "     \"type\": \"record\",\n" +
-                "     \"namespace\": \"com.example\",\n" +
-                "     \"name\": \"Customer\",\n" +
-                "     \"fields\": [\n" +
-                "       { \"name\": \"first_name\", \"type\": \"string\", \"default\": \"Mamadou\", \"doc\": \"First Name of Customer\" },\n" +
-                "       { \"name\": \"last_name\", \"type\": \"string\", \"default\": \"Doumbia\", \"doc\": \"Last Name of Customer\" },\n" +
-                "       { \"name\": \"age\", \"type\": \"string\", \"default\": \"20\", \"doc\": \"Age at the time of registration\" },\n" +
-                "       { \"name\": \"height\", \"type\": \"string\", \"default\": \"1,80\", \"doc\": \"Height at the time of registration in cm\" },\n" +
-                "       { \"name\": \"weight\", \"type\": \"string\", \"default\": \"70\", \"doc\": \"Weight at the time of registration in kg\" },\n" +
-                "       { \"name\": \"automated_email\", \"type\": \"string\", \"default\": \"mdo\", \"doc\": \"Field indicating if the user is enrolled in marketing emails\" }\n" +
-                "     ]\n" +
-                "}");
-
-
-        // we build our first customer
-        GenericRecordBuilder customerBuilder = new GenericRecordBuilder(schema);
-//        lr2.fieldSetter(customerBuilder, "type1", "John");
-//        customerBuilder.set("first_name", "John");
-//        customerBuilder.set("last_name", "Doe");
-//        customerBuilder.set("age", 26);
-//        customerBuilder.set("height", 175f);
-//        customerBuilder.set("weight", 70.5f);
-//        customerBuilder.set("automated_email", false);
-        GenericData.Record myCustomer = customerBuilder.build();
-//        System.out.println(myCustomer);
-
-	  
-//	  lr2.fieldSetter(customerBuilder, "first_name", "John");
-//        customerBuilder.set("first_name", "John");
-//        customerBuilder.set("last_name", "Doe");
-//        customerBuilder.set("age", 26);
-//        customerBuilder.set("height", 175f);
-//        customerBuilder.set("weight", 70.5f);
-//        customerBuilder.set("automated_email", false);
-//        GenericData.Record myCustomer = customerBuilder.build();
-//        System.out.println(myCustomer);
-        
-        
-//	GenericData.Record a = avroRecord.build();
 	public int init() throws Throwable {
 		return 0;
 	}//end of init
 
 
 	public int action() throws Throwable {
-		System.out.println(myCustomer);
+
+String topic = "topic1";
+//String topic = "test-avro6";
+
+Properties props = new Properties();
+props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+          io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+          io.confluent.kafka.serializers.KafkaAvroSerializer.class);
+props.put("schema.registry.url", "http://localhost:8081");
+KafkaProducer producer = new KafkaProducer(props);
+
+//String key = "key1";
+//String userSchema = "{\"type\":\"record\"," +
+//                    "\"name\":\"myrecord\"," +
+//                    "\"fields\":[{\"name\":\"f1\",\"type\":\"string\"}]}";
+                    
+String userSchema = "{"+
+     "\"type\": \"record\","+
+     "\"namespace\": \"com.example\","+
+     "\"name\": \"Customer\","+
+     "\"version\": \"1\","+
+     "\"fields\": ["+
+       "{ \"name\": \"first_name\", \"type\": \"string\", \"doc\": \"First Name of Customer\" },"+  
+       "{ \"name\": \"last_name\", \"type\": \"string\", \"doc\": \"Last Name of Customer\" },"+  
+       "{ \"name\": \"age\", \"type\": \"int\", \"doc\": \"Age at the time of registration\" },"+  
+       "{ \"name\": \"height\", \"type\": \"float\", \"doc\": \"Height at the time of registration in cm\" },"+  
+       "{ \"name\": \"weight\", \"type\": \"float\", \"doc\": \"Weight at the time of registration in kg\" },"+
+       "{ \"name\": \"automated_email\", \"type\": \"boolean\", \"default\": true, \"doc\": \"Field indicating if the user is enrolled in marketing emails\" }"+
+     "]"+
+"}";
+	
+Schema.Parser parser = new Schema.Parser();
+Schema schema = parser.parse(userSchema);
+GenericRecord avroRecord = new GenericData.Record(schema);
+//avroRecord.put("f1", "value1");
+
+avroRecord.put("first_name", "John");
+avroRecord.put("last_name", "Doe");
+avroRecord.put("age", 26);
+avroRecord.put("height", 175f);
+avroRecord.put("weight", 70.5f);
+avroRecord.put("automated_email", false);
+
+System.out.println("Mon Msg avro est :"+ avroRecord);
+
+
+//ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, key, avroRecord);
+ProducerRecord<Object, Object> record = new ProducerRecord<>(topic, avroRecord);
+
+System.out.println("Mon Msg record est :"+ record);
+producer.send(record);
+  producer.flush();
+  producer.close();
+//
+//try {
+//  producer.send(record);
+//} catch(SerializationException e) {
+//  // may need to do something with it
+//}
+//// When you're finished producing records, you can flush the producer to ensure it has all been written to Kafka and
+//// then close the producer to free its resources.
+//finally {
+//  producer.flush();
+//  producer.close();
+//}
 		return 0;
 	}//end of action
 
